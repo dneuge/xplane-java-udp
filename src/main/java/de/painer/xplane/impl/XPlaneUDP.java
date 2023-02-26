@@ -238,7 +238,7 @@ public final class XPlaneUDP implements XPlane {
                 DataReader reader = new DataReader(buffer);
 
                 // handle the message according to it's type
-                String msgType = reader.readString(5);
+                String msgType = reader.readString(4);
                 switch (msgType) {
                     case "RPOS" -> receivedRpos(reader);
                     case "RREF" -> receivedRref(reader);
