@@ -3,6 +3,7 @@ package de.painer.xplane.impl;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
@@ -208,14 +209,20 @@ public final class XPlaneUDP implements XPlane {
      */
     private void receivedRref(DataReader reader) {
         // read message data
-        int index = reader.readInt();
-        float value = reader.readFloat();
-        String dataref = watchedDatarefs.get(index);
-        LOG.debug("Received dataref {} with ID {} and value {}.", dataref, index, value);
+        try {
+            while (true) {
+                int index = reader.readInt();
+                float value = reader.readFloat();
+                String dataref = watchedDatarefs.get(index);
+                LOG.debug("Received dataref {} with ID {} and value {}.", dataref, index, value);
 
-        // inform listeners
-        for (XPlaneListener listener : listeners) {
-            listener.receivedDataref(dataref, value);
+                // inform listeners
+                for (XPlaneListener listener : listeners) {
+                    listener.receivedDataref(dataref, value);
+                }
+            }
+        } catch (BufferUnderflowException ex) {
+            // expected
         }
     }
 
