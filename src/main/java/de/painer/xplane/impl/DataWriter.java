@@ -29,7 +29,7 @@ public final class DataWriter {
      * @return Buffer with created byte data.
      */
     public ByteBuffer export() {
-        return buffer.flip();
+        return (ByteBuffer) buffer.flip();
     }
 
     /**
@@ -106,7 +106,7 @@ public final class DataWriter {
      * reached.
      * </p>
      * 
-     * @param data   String to write to the buffer.
+     * @param data String to write to the buffer.
      * @param length Length of data to write to the buffer.
      */
     public void writeString(String data, int length) {

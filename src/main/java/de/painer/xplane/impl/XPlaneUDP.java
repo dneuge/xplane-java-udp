@@ -60,7 +60,7 @@ public final class XPlaneUDP implements XPlane {
     /**
      * Constructor.
      * 
-     * @param name    Name of the instance.
+     * @param name Name of the instance.
      * @param address Address of the instance.
      * @throws IOException In case of connection error.
      */
@@ -181,23 +181,23 @@ public final class XPlaneUDP implements XPlane {
     private void receivedRpos(DataReader reader) {
         // parse data
         Position pos = new Position(
-                reader.readDouble(),
-                reader.readDouble(),
-                reader.readDouble(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat(),
-                reader.readFloat());
+            reader.readDouble(),
+            reader.readDouble(),
+            reader.readDouble(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat(),
+            reader.readFloat());
         LOG.debug("Received position {}.", pos);
 
         // send data to listeners
-        for (var listener : listeners) {
+        for (XPlaneListener listener : listeners) {
             listener.receivedPosition(pos);
         }
     }
@@ -217,7 +217,7 @@ public final class XPlaneUDP implements XPlane {
                 LOG.debug("Received dataref {} with ID {} and value {}.", dataref, index, value);
 
                 // inform listeners
-                for (var listener : listeners) {
+                for (XPlaneListener listener : listeners) {
                     listener.receivedDataref(dataref, value);
                 }
             }
@@ -246,10 +246,12 @@ public final class XPlaneUDP implements XPlane {
 
                 // handle the message according to it's type
                 String msgType = reader.readString(4);
-                switch (msgType) {
-                    case "RPOS" -> receivedRpos(reader);
-                    case "RREF" -> receivedRref(reader);
-                    default -> LOG.warn("Unknown message type received: {}.", msgType);
+                if ("RPOS".equals(msgType)) {
+                    receivedRpos(reader);
+                } else if ("RREF".equals(msgType)) {
+                    receivedRref(reader);
+                } else {
+                    LOG.warn("Unknown message type received: {}.", msgType);
                 }
             } catch (IOException ex) {
                 LOG.error("Error during receiving messge.", ex);

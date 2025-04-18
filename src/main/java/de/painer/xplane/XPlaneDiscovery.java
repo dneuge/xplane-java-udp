@@ -15,11 +15,15 @@ import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.MembershipKey;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,8 +180,8 @@ public final class XPlaneDiscovery {
         // create list with threads for all valid network interfaces
         LOG.debug("Starting threads for X-Plane discovery.");
         try {
-            threads = NetworkInterface.networkInterfaces().filter(ifc -> checkNetworkInterface(ifc))
-                    .map(this::createThread).filter(Objects::nonNull).toList();
+            threads = stream(NetworkInterface.getNetworkInterfaces()).filter(ifc -> checkNetworkInterface(ifc))
+                .map(this::createThread).filter(Objects::nonNull).collect(Collectors.toList());
         } catch (SocketException ex) {
             threads = null;
         }
@@ -278,8 +282,7 @@ public final class XPlaneDiscovery {
                         reader.readInt(),
                         reader.readUnsignedInt(),
                         reader.readUnsignedShort(),
-                        reader.readString(500)
-                    );
+                        reader.readString(500));
                     processBeacon((InetSocketAddress) address, beacon);
                 }
             }
@@ -299,7 +302,7 @@ public final class XPlaneDiscovery {
      * Process a receviced beacon.
      * 
      * @param address Address from which the beacon was sent.
-     * @param beacon  Content of the beacon message.
+     * @param beacon Content of the beacon message.
      */
     private void processBeacon(InetSocketAddress address, Beacon beacon) {
         semaphore.acquireUninterruptibly();
@@ -312,7 +315,7 @@ public final class XPlaneDiscovery {
                 InetSocketAddress instAddress = new InetSocketAddress(address.getAddress(), beacon.port());
                 XPlaneInstance instance = new XPlaneInstanceUDP(instAddress, beacon);
                 instances.put(address, instance);
-                for (var listener : listeners) {
+                for (XPlaneDiscoveryListener listener : listeners) {
                     listener.foundInstance(instance);
                 }
             }
@@ -344,13 +347,13 @@ public final class XPlaneDiscovery {
             // find all instances where the last beacon was too long ago
             final long threshold = System.currentTimeMillis() - TIMEOUT_SECONDS * 1000;
             List<InetSocketAddress> lost = lastBeacons.entrySet().stream().filter(e -> e.getValue() < threshold)
-                    .map(e -> e.getKey()).toList();
+                .map(e -> e.getKey()).collect(Collectors.toList());
 
             // remove lost instances from the list and inform listeners
-            for (var l : lost) {
+            for (InetSocketAddress l : lost) {
                 lastBeacons.remove(l);
                 XPlaneInstance instance = instances.remove(l);
-                for (var listener : listeners) {
+                for (XPlaneDiscoveryListener listener : listeners) {
                     listener.lostInstance(instance);
                 }
             }
@@ -373,10 +376,22 @@ public final class XPlaneDiscovery {
             }
 
             // the network interface should have an IPv4 address
-            return ifc.inetAddresses().anyMatch(Inet4Address.class::isInstance);
+            return stream(ifc.getInetAddresses()).anyMatch(Inet4Address.class::isInstance);
         } catch (SocketException ex) {
             return false;
         }
+    }
+
+    private static <T> Stream<T> stream(Enumeration<T> enumeration) {
+        if (enumeration == null) {
+            return Stream.empty();
+        }
+
+        Builder<T> builder = Stream.builder();
+        while (enumeration.hasMoreElements()) {
+            builder.add(enumeration.nextElement());
+        }
+        return builder.build();
     }
 
 }
