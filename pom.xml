@@ -4,6 +4,10 @@
     <artifactId>xplane</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 
+    <name>xplane-java</name>
+    <description>Java connection to X-Plane via UDP</description>
+    <url>https://github.com/spainer/xplane-java</url>
+
     <licenses>
         <license>
             <name>MIT</name>
@@ -14,6 +18,18 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <scm>
+        <connection>scm:git:git://github.com/spainer/xplane-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:spainer/xplane-java.git</developerConnection>
+        <url>https://github.com/spainer/xplane-java</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Sven Painer</name>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>
