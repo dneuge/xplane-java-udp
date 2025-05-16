@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.energiequant</groupId>
     <artifactId>github-spainer-xplane-fork</artifactId>
-    <version>0.1.0.250516</version>
+    <version>0.1.0-SNAPSHOT</version>
 
     <name>xplane-java (forked)</name>
     <description>Java connection to X-Plane via UDP</description>
